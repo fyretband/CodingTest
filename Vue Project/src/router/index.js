@@ -40,9 +40,9 @@ const router = createRouter({
   ]
 })
 router.beforeEach((to, from, next) => {
-  const counterStore = useCounterStore();
+  const token = localStorage.getItem('access_token')
 
-  if (to.name !== 'login' && !counterStore.isAuthenticated) {
+  if (to.name !== 'login' && !token) {
     next({ name: 'login' }); 
   } else {
     next(); 

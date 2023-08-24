@@ -46,6 +46,7 @@
     </table>
     <div class="pagination">
       <button
+      class="pagination-button"
         @click="changePage(currentPage - 1)"
         :disabled="currentPage === 1"
       >
@@ -53,6 +54,7 @@
       </button>
       <span>Page {{ currentPage }} of {{ totalPages }}</span>
       <button
+      class="pagination-button"
         @click="changePage(currentPage + 1)"
         :disabled="currentPage === totalPages"
       >
@@ -70,7 +72,7 @@
           {{ updateItemId !== null ? "Update Barang" : "Tambah Barang Baru" }}
         </h2>
       </div>
-      <form>
+      <form @submit.prevent="submitForm">
         <label for="nama">Nama Barang</label>
         <input type="text" id="nama" v-model="updateItemData.namaBarang" />
         <label for="harga">Harga Barang</label>
@@ -91,7 +93,7 @@
           <button class="cancel-button" @click="cancelUpdate">Kembali</button>
           <button
             class="update-button"
-            @click="updateItemId !== null ? updateBarang : addBarang"
+            type="submit"
           >
             {{ updateItemId !== null ? "Update" : "Tambah" }}
           </button>
@@ -123,7 +125,7 @@ export default {
       updateItemId: null,
       updateItemData: {
         namaBarang: "",
-        hargaBarang: 0,
+        harga: 0,
         stok: 0,
         supplier: {
           namaSupplier: "",
@@ -146,12 +148,24 @@ export default {
       "fetchSingleBarang",
       "fetchSupplier",
     ]),
+
+    submitForm(){
+      console.log("cekkkkkk");
+      if (this.updateItemId !== null){
+        console.log("update");
+        this.updateBarang();
+      }
+      else{
+        console.log("tambah");
+        this.addBarang();
+      }
+    },
     showTambahBarangForm() {
       this.showTambahForm = true;
       this.updateItemId = null; 
       this.updateItemData = {
         namaBarang: "",
-        hargaBarang: 0,
+        harga: 0,
         stok: 0,
         supplier: {
           namaSupplier: this.supplier[0].namaSupplier, 
@@ -178,7 +192,7 @@ export default {
 
         if (response.data && response.data.status === "OK") {
           
-          this.fetchBarang((this.currentPage - 1) * this.perPage, this.perPage);
+          this.fetchBarang((this.currentPage - 1), this.perPage);
           this.cancelUpdate(); 
 
           
@@ -201,7 +215,7 @@ export default {
     changePage(pageNumber) {
       if (pageNumber >= 1 && pageNumber <= this.totalPages) {
         this.setCurrentPage(pageNumber);
-        this.fetchBarang((pageNumber - 1) * this.perPage, this.perPage);
+        this.fetchBarang((pageNumber - 1), this.perPage);
       }
     },
     deleteItem(id) {
@@ -240,7 +254,7 @@ export default {
         );
 
         if (response.status === 200) {
-          this.fetchBarang((this.currentPage - 1) * this.perPage, this.perPage);
+          this.fetchBarang((this.currentPage - 1), this.perPage);
           this.cancelUpdate();
         } else {
           throw new Error("Failed to update barang");
@@ -254,7 +268,7 @@ export default {
       this.updateItemId = null;
       this.updateItemData = {
         namaBarang: "",
-        hargaBarang: 0,
+        harga: 0,
         stok: 0,
         supplier: {
           namaSupplier: "",
@@ -395,6 +409,15 @@ td {
 }
 
 .tambah-barang-button {
+  background-color: #0070f3;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pagination-button{
   background-color: #0070f3;
   color: white;
   border: none;

@@ -42,6 +42,7 @@
     </table>
     <div class="pagination">
       <button
+      class="pagination-button"
         @click="changePage(currentPage - 1)"
         :disabled="currentPage === 1"
       >
@@ -49,6 +50,7 @@
       </button>
       <span>Page {{ currentPage }} of {{ totalPages }}</span>
       <button
+      class="pagination-button"
         @click="changePage(currentPage + 1)"
         :disabled="currentPage === totalPages"
       >
@@ -68,7 +70,7 @@
           }}
         </h2>
       </div>
-      <form>
+      <form @submit.prevent="submitForm">
         <label for="nama">Nama Supplier</label>
         <input type="text" id="nama" v-model="updateItemData.namaSupplier" />
         <label for="harga">No Telp</label>
@@ -80,7 +82,7 @@
           <button class="cancel-button" @click="cancelUpdate">Kembali</button>
           <button
             class="update-button"
-            @click="updateItemId !== null ? updateSupplier : addSupplier"
+            type="submit"
           >
             {{ updateItemId !== null ? "Update" : "Tambah" }}
           </button>
@@ -127,10 +129,21 @@ export default {
       "deleteSupplier",
       "fetchSingleSupplier",
     ]),
+    submitForm(){
+      console.log("cekkkkkk");
+      if (this.updateItemId !== null){
+        console.log("update");
+        this.updateSupplier();
+      }
+      else{
+        console.log("tambah");
+        this.addSupplier();
+      }
+    },
     changePage(pageNumber) {
       if (pageNumber >= 1 && pageNumber <= this.totalPages) {
         this.setCurrentPage(pageNumber);
-        this.fetchSupplier((pageNumber - 1) * this.perPage, this.perPage);
+        this.fetchSupplier((pageNumber - 1), this.perPage);
       }
     },
     deleteItem(id) {
@@ -175,7 +188,7 @@ export default {
 
         if (response.data && response.data.status === "OK") {
           
-          this.fetchSupplier((this.currentPage - 1) * this.perPage, this.perPage);
+          this.fetchSupplier((this.currentPage - 1), this.perPage);
           this.cancelUpdate(); 
 
           
@@ -225,7 +238,7 @@ export default {
 
         if (response.status === 200) {
           this.fetchSupplier(
-            (this.currentPage - 1) * this.perPage,
+            (this.currentPage - 1),
             this.perPage
           );
           this.cancelUpdate();
@@ -380,5 +393,13 @@ td {
 .update-button:hover,
 .cancel-button:hover {
   background-color: #005bb5;
+}
+.pagination-button{
+  background-color: #0070f3;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 </style>

@@ -155,7 +155,7 @@ export const useCounterStore = defineStore("useCounterStore", {
         );
 
         if (response.status === 200) {
-          this.fetchBarang((this.currentPage - 1) * this.perPage, this.perPage);
+          this.fetchBarang((this.currentPage - 1), this.perPage);
         } else {
           throw new Error("Failed to delete barang data");
         }
@@ -250,17 +250,17 @@ export const useCounterStore = defineStore("useCounterStore", {
 
         if (response.status === 200) {
           this.supplier = response.data.data;
-          this.totalRows = response.data.total_record; // Update totalRows with the total count from the response
+          this.totalRows = response.data.total_record; 
           this.totalPages = Math.ceil(
             response.data.total_record / this.perPage
-          ); // Calculate total pages
+          ); 
           console.log(response);
         } else {
           throw new Error("Failed to fetch barang data");
         }
       } catch (error) {
         console.error(error);
-        // Handle the error
+        
       }
     },
     async deleteSupplier(id) {
@@ -282,7 +282,7 @@ export const useCounterStore = defineStore("useCounterStore", {
 
         if (response.status === 200) {
           this.fetchSupplier(
-            (this.currentPage - 1) * this.perPage,
+            (this.currentPage - 1),
             this.perPage
           );
         } else {
@@ -290,7 +290,7 @@ export const useCounterStore = defineStore("useCounterStore", {
         }
       } catch (error) {
         console.error(error);
-        // Handle the error
+        
       }
     },
   },
