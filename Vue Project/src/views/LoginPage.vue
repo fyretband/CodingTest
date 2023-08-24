@@ -68,7 +68,7 @@ import { useCounterStore } from '../stores/counter';
   }
   
   .logo img {
-    max-height: 150px; /* Perbesar logo jika diperlukan */
+    max-height: 150px; 
   }
   
   .login-form {

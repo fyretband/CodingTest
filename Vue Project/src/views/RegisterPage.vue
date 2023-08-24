@@ -74,7 +74,7 @@ import { mapActions } from 'pinia';
   }
   
   .logo img {
-    max-height: 150px; /* Perbesar logo jika diperlukan */
+    max-height: 150px; 
   }
   
   .register-form {

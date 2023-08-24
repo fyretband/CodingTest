@@ -3,7 +3,8 @@
     <div class="card sidebar">
       <img src="@/assets/profile.png" class="card-img-top" alt="..." />
       <div class="card-body">
-        <h5 class="card-title">{{ profileName }}</h5>
+        <h5 class="card-title">{{ userData?.profileName }}</h5>
+       
       </div>
       <div class="card">
         <div class="card-body">
@@ -39,25 +40,7 @@
     </div>
     <div class="main-content">
       <h2 style="background-color: #82c8ff; color: #0070f3">Dashboard</h2>
-      <div class="content-header">
-        <h3>{{ selectedItem === "barang" ? "Barang" : "Supplier" }}</h3>
-        <div class="header-actions">
-          <button
-            class="tambah-barang-button"
-            v-if="selectedItem === 'barang'"
-            @click="showTambahBarangModal = true"
-          >
-            Tambah Barang
-          </button>
-          <button
-            class="tambah-barang-button"
-            v-else-if="selectedItem === 'supplier'"
-            @click="showTambahSupplierModal = true"
-          >
-            Tambah Supplier
-          </button>
-        </div>
-      </div>
+    
       <div class="table-container">
         <barang-table
           v-if="selectedItem === 'barang'"
@@ -72,38 +55,21 @@
       </div>
     </div>
   </div>
-  <div class="add-form-container" v-if="showTambahBarangModal">
-    <div class="add-form">
-      <h2>Tambah Barang</h2>
-      <form>
-        <label for="nama">Nama Barang</label>
-        <input type="text" id="nama" v-model="newItemData.namaBarang" />
-        <label for="harga">Harga Barang</label>
-        <input type="number" id="harga" v-model="newItemData.hargaBarang" />
-        <label for="stok">Stok Barang</label>
-        <input type="number" id="stok" v-model="newItemData.stok" />
-        <label for="supplier">Supplier</label>
-        <input
-          type="text"
-          id="supplier"
-          v-model="newItemData.supplier.namaSupplier"
-        />
-        <button class="add-button" @click="addBarang">Tambah</button>
-        <button class="cancel-button" @click="cancelAdd">Cancel</button>
-      </form>
-    </div>
-  </div>
+
 </template>
 
 <script>
 import BarangTable from "@/components/BarangTable.vue";
 import SupplierTable from "@/components/SupplierTable.vue";
-import { mapState, mapActions } from "pinia"; // Sesuaikan dengan library state management Anda
+import { mapState,  } from "pinia"; 
 import { useCounterStore } from "../stores/counter";
-
+import axios from "axios";
 export default {
   computed: {
     ...mapState(useCounterStore, ["barang", "suppliers"]),
+  },
+  created() {
+    this.getUserData('jojo'); 
   },
   components: {
     BarangTable,
@@ -113,7 +79,7 @@ export default {
     return {
       profileName: "John Doe",
       selectedItem: null,
-      showTambahBarangModal: false, // New property
+      showTambahBarangModal: false, 
       newItemData: {
         namaBarang: "",
         hargaBarang: 0,
@@ -122,16 +88,40 @@ export default {
           namaSupplier: "",
         },
       },
+      userData: null,
     };
   },
   methods: {
     selectItem(item) {
       this.selectedItem = item;
     },
+    
+    async getUserData(username) {
+      try {
+        const token = localStorage.getItem("access_token");
+
+        if (!token) {
+          throw new Error("Access token not found");
+        }
+
+        const response = await axios.get(
+          `http://159.223.57.121:8090/users/find-by-username?username=${username}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data.status === "OK") {
+          this.userData = response.data.data;
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    },
     addBarang() {
-      // Implement your logic to add the new item
-      // For example, if using Pinia for state management:
-      // this.$store.addBarang(this.newItemData);
+      
       this.newItemData = {
         namaBarang: "",
         hargaBarang: 0,
@@ -158,7 +148,7 @@ export default {
 </script>
 
 <style scoped>
-/* Gaya untuk sidebar */
+
 .sidebar {
   background-color: #ffffff;
   box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.5);
@@ -234,11 +224,11 @@ export default {
   color: #6c757d;
 }
 .underline {
-  width: 100%; /* Make the underline span the whole width */
+  width: 100%; 
   height: 1px;
   background-color: #82c8ff;
   position: absolute;
-  bottom: 25%; /* Adjust the position of the underline */
+  bottom: 25%; 
   left: 0;
 }
 

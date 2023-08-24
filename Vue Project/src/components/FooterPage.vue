@@ -17,24 +17,24 @@ export default {
 
 <style scoped>
 .footer {
-  background-color: #82c8ff; /* Warna biru muda latar belakang */
+  background-color: #82c8ff; 
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 80px; /* Sesuaikan dengan kebutuhan */
+  height: 80px; 
 }
 
 .footer-text {
-  margin-right: 20px; /* Jarak antara teks dan logo */
+  margin-right: 20px; 
 }
 
 .footer-text p {
-  color: white; /* Warna teks */
+  color: white; 
   font-weight: bold;
   margin: 0;
 }
 
 .footer-logo img {
-  max-height: 40px; /* Ukuran logo */
+  max-height: 40px; 
 }
 </style>

@@ -12,6 +12,8 @@ export const useCounterStore = defineStore("useCounterStore", {
     perPage: 20,
     totalRows: 0,
     totalPages: 0,
+    singleBarang: {},
+    singleSupplier: {},
   }),
   getters: {
     isAuthenticated: (state) => {
@@ -29,6 +31,7 @@ export const useCounterStore = defineStore("useCounterStore", {
       } else {
         this.isLoggedIn = false;
       }
+      console.log(this.isLoggedIn)
     },
     async handleRegister(username, profileName, password) {
       try {
@@ -74,9 +77,12 @@ export const useCounterStore = defineStore("useCounterStore", {
             timer: 1000,
           });
 
-          const token = response.data.data.token; // Extract the token from the response
+          const token = response.data.data.token; 
+
+          
 
           localStorage.setItem("access_token", token);
+         
 
           this.isLoggedIn = true;
           this.router.push("/");
@@ -118,27 +124,27 @@ export const useCounterStore = defineStore("useCounterStore", {
 
         if (response.status === 200) {
           this.barang = response.data.data;
-          this.totalRows = response.data.total_record; // Update totalRows with the total count from the response
+          this.totalRows = response.data.total_record; 
           this.totalPages = Math.ceil(
             response.data.total_record / this.perPage
-          ); // Calculate total pages
+          ); 
           console.log(response);
         } else {
           throw new Error("Failed to fetch barang data");
         }
       } catch (error) {
         console.error(error);
-        // Handle the error
+        
       }
     },
     async deleteBarang(id) {
       try {
         const token = localStorage.getItem("access_token");
-  
+
         if (!token) {
           throw new Error("Access token not found");
         }
-  
+
         const response = await axios.delete(
           `http://159.223.57.121:8090/barang/delete/${id}`,
           {
@@ -147,27 +153,25 @@ export const useCounterStore = defineStore("useCounterStore", {
             },
           }
         );
-  
+
         if (response.status === 200) {
-          
           this.fetchBarang((this.currentPage - 1) * this.perPage, this.perPage);
         } else {
           throw new Error("Failed to delete barang data");
         }
       } catch (error) {
         console.error(error);
-        // Handle the error
+        
       }
     },
     async fetchSingleBarang(id) {
-   
       try {
         const token = localStorage.getItem("access_token");
-  
+
         if (!token) {
           throw new Error("Access token not found");
         }
-  
+
         const response = await axios.get(
           `http://159.223.57.121:8090/barang/find-by-id/${id}`,
           {
@@ -176,10 +180,44 @@ export const useCounterStore = defineStore("useCounterStore", {
             },
           }
         );
-  
+
         if (response.status === 200) {
-          this.updateItemData = response.data;
-          console.log(response,'ini response barang single')
+          this.singleBarang = response.data.data;
+          console.log(this.singleBarang);
+
+          console.log(response, "ini response barang single");
+          console.log(response.data.data, "cek donnnngg");
+        } else {
+          throw new Error("Failed to fetch single barang data");
+        }
+      } catch (error) {
+        console.error(error);
+       
+      }
+    },
+    async fetchSingleSupplier(id) {
+      try {
+        const token = localStorage.getItem("access_token");
+
+        if (!token) {
+          throw new Error("Access token not found");
+        }
+
+        const response = await axios.get(
+          `http://159.223.57.121:8090/supplier/find-by-id/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          this.singleSupplier = response.data.data;
+          console.log(this.singleSupplier);
+
+          console.log(response, "ini response barang single");
+          console.log(response.data.data, "cek donnnngg");
         } else {
           throw new Error("Failed to fetch single barang data");
         }
@@ -228,11 +266,11 @@ export const useCounterStore = defineStore("useCounterStore", {
     async deleteSupplier(id) {
       try {
         const token = localStorage.getItem("access_token");
-  
+
         if (!token) {
           throw new Error("Access token not found");
         }
-  
+
         const response = await axios.delete(
           `http://159.223.57.121:8090/supplier/delete/${id}`,
           {
@@ -241,10 +279,12 @@ export const useCounterStore = defineStore("useCounterStore", {
             },
           }
         );
-  
+
         if (response.status === 200) {
-          
-          this.fetchSupplier((this.currentPage - 1) * this.perPage, this.perPage);
+          this.fetchSupplier(
+            (this.currentPage - 1) * this.perPage,
+            this.perPage
+          );
         } else {
           throw new Error("Failed to delete barang data");
         }

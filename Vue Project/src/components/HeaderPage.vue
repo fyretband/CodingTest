@@ -9,7 +9,7 @@
 
 <style scoped>
 .header {
-  background-color: #82c8ff; /* Warna biru muda */
+  background-color: #82c8ff; 
   padding: 10px;
   display: flex;
   align-items: center;
@@ -23,7 +23,7 @@
 }
 
 .logo {
-  width: 80px; /* Sesuaikan ukuran logo */
+  width: 80px; 
   height: 80px;
 }
 

@@ -1,5 +1,11 @@
 <template>
   <div class="table-container">
+    <div class="table-header">
+      <div class="table-title">Barang</div>
+      <button class="tambah-barang-button" @click="showTambahBarangForm">
+        Tambah Barang
+      </button>
+    </div>
     <table class="custom-table">
       <thead>
         <tr>
@@ -27,7 +33,13 @@
             >
               Delete
             </button>
-            <button class="action-button update-button" @click="showUpdateForm(id)">Update</button>
+            <button
+              style="background-color: #ffac33"
+              class="action-button update-button"
+              @click="showUpdateForm(item.id)"
+            >
+              Update
+            </button>
           </td>
         </tr>
       </tbody>
@@ -48,20 +60,42 @@
       </button>
     </div>
   </div>
-  <div class="update-form-container" v-if="updateItemId">
-  <div class="update-form login-form">
-      <h2>Update Barang</h2>
+  <div
+    class="update-form-container"
+    v-if="updateItemId !== null || showTambahForm"
+  >
+    <div class="update-form login-form">
+      <div class="form-header">
+        <h2>
+          {{ updateItemId !== null ? "Update Barang" : "Tambah Barang Baru" }}
+        </h2>
+      </div>
       <form>
         <label for="nama">Nama Barang</label>
-        <input type="text" id="nama" v-model="updateItemData.namaBarang">
+        <input type="text" id="nama" v-model="updateItemData.namaBarang" />
         <label for="harga">Harga Barang</label>
-        <input type="number" id="harga" v-model="updateItemData.hargaBarang">
+        <input type="number" id="harga" v-model="updateItemData.harga" />
         <label for="stok">Stok Barang</label>
-        <input type="number" id="stok" v-model="updateItemData.stok">
+        <input type="number" id="stok" v-model="updateItemData.stok" />
         <label for="supplier">Supplier</label>
-        <input type="text" id="supplier" v-model="updateItemData.supplier.namaSupplier">
-        <button @click="updateBarang">Update</button>
-        <button @click="cancelUpdate">Cancel</button>
+        <select id="supplier" v-model="updateItemData.supplier.namaSupplier">
+          <option
+            v-for="supplie in supplier"
+            :key="supplie.id"
+            :value="supplie.namaSupplier"
+          >
+            {{ supplie.namaSupplier }}
+          </option>
+        </select>
+        <div class="form-buttons">
+          <button class="cancel-button" @click="cancelUpdate">Kembali</button>
+          <button
+            class="update-button"
+            @click="updateItemId !== null ? updateBarang : addBarang"
+          >
+            {{ updateItemId !== null ? "Update" : "Tambah" }}
+          </button>
+        </div>
       </form>
     </div>
   </div>
@@ -70,62 +104,131 @@
 <script>
 import { mapActions, mapState } from "pinia";
 import { useCounterStore } from "../stores/counter";
-import axios from 'axios'
+import axios from "axios";
 
 export default {
   computed: {
     ...mapState(useCounterStore, [
       "barang",
-      "suppliers",
+      "supplier",
       "currentPage",
       "totalPages",
       "perPage",
+      "singleBarang",
     ]),
   },
   data() {
     return {
+      showTambahForm: false,
       updateItemId: null,
       updateItemData: {
         namaBarang: "",
         hargaBarang: 0,
         stok: 0,
         supplier: {
-          namaSupplier: ""
-        }
-      }
+          namaSupplier: "",
+        },
+      },
     };
   },
   created() {
     this.currentPage = 1;
     this.perPage = 20;
     this.fetchBarang(0, this.perPage);
+    this.fetchSupplier(0, 100);
   },
 
   methods: {
-    ...mapActions(useCounterStore, ["fetchBarang", "setCurrentPage","deleteBarang","fetchSingleBarang"]),
+    ...mapActions(useCounterStore, [
+      "fetchBarang",
+      "setCurrentPage",
+      "deleteBarang",
+      "fetchSingleBarang",
+      "fetchSupplier",
+    ]),
+    showTambahBarangForm() {
+      this.showTambahForm = true;
+      this.updateItemId = null; 
+      this.updateItemData = {
+        namaBarang: "",
+        hargaBarang: 0,
+        stok: 0,
+        supplier: {
+          namaSupplier: this.supplier[0].namaSupplier, 
+        },
+      };
+    },
+    async addBarang() {
+      try {
+        const token = localStorage.getItem("access_token");
+
+        if (!token) {
+          throw new Error("Access token not found");
+        }
+
+        const response = await axios.post(
+          "http://159.223.57.121:8090/barang/create",
+          this.updateItemData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data && response.data.status === "OK") {
+          
+          this.fetchBarang((this.currentPage - 1) * this.perPage, this.perPage);
+          this.cancelUpdate(); 
+
+          
+          this.setCurrentPage(this.totalPages);
+
+          
+          window.scrollTo(0, document.body.scrollHeight);
+
+          console.log(response.data.message); 
+        } else {
+          throw new Error("Failed to add barang");
+        }
+      } catch (error) {
+        console.error(error);
+        
+      }
+    
+      this.showTambahForm = false; 
+    },
     changePage(pageNumber) {
       if (pageNumber >= 1 && pageNumber <= this.totalPages) {
         this.setCurrentPage(pageNumber);
         this.fetchBarang((pageNumber - 1) * this.perPage, this.perPage);
       }
     },
-    deleteItem(id){
+    deleteItem(id) {
       this.deleteBarang(id);
     },
-    showUpdateForm(id) {
+    async showUpdateForm(id) {
       this.updateItemId = id;
-      this.fetchSingleBarang(id);
-      console.log(id)
+      await this.fetchSingleBarang(id);
+      this.updateItemData.namaBarang = this.singleBarang.namaBarang;
+      this.updateItemData.stok = this.singleBarang.stok;
+      this.updateItemData.harga = this.singleBarang.harga;
+      this.updateItemData.supplier.namaSupplier =
+      this.singleBarang.supplier?.namaSupplier;
+  
+      await this.fetchSupplier(0, 100);
+     
     },
-   
+    
+
     async updateBarang() {
       try {
         const token = localStorage.getItem("access_token");
-  
+
         if (!token) {
           throw new Error("Access token not found");
         }
-  
+
         const response = await axios.put(
           `http://159.223.57.121:8090/barang/update/${this.updateItemId}`,
           this.updateItemData,
@@ -135,17 +238,16 @@ export default {
             },
           }
         );
-  
+
         if (response.status === 200) {
-         
           this.fetchBarang((this.currentPage - 1) * this.perPage, this.perPage);
-          this.cancelUpdate(); 
+          this.cancelUpdate();
         } else {
           throw new Error("Failed to update barang");
         }
       } catch (error) {
         console.error(error);
-        // Handle the error
+        
       }
     },
     cancelUpdate() {
@@ -155,21 +257,21 @@ export default {
         hargaBarang: 0,
         stok: 0,
         supplier: {
-          namaSupplier: ""
-        }
+          namaSupplier: "",
+        },
       };
-    }
+    },
   },
 };
 </script>
 
 <style scoped>
-/* Gaya untuk container tabel */
+
 .table-container {
   overflow-x: auto;
 }
 
-/* Gaya untuk tabel */
+
 .custom-table {
   width: 100%;
   border-collapse: collapse;
@@ -185,7 +287,7 @@ td {
   text-align: center;
 }
 
-/* Gaya tombol Aksi (Delete dan Update) */
+
 .action-button {
   border: none;
   padding: 5px 10px;
@@ -215,7 +317,7 @@ td {
   width: 100%;
   height: 100%;
   z-index: 1000;
-  background-color: rgba(0, 0, 0, 0.5); /* Transparansi latar belakang */
+  background-color: rgba(0, 0, 0, 0.5); 
 }
 
 .update-form {
@@ -224,6 +326,17 @@ td {
   border-radius: 5px;
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
   width: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.form-header {
+  background-color: #82c8ff;
+  color: #0070f3;
+  text-align: center;
+  padding: 10px;
+  border-radius: 5px 5px 0 0;
 }
 
 .update-form label {
@@ -231,7 +344,8 @@ td {
   margin-bottom: 5px;
 }
 
-.update-form input {
+.update-form input,
+.update-form select {
   width: 100%;
   padding: 8px;
   margin-bottom: 10px;
@@ -239,27 +353,53 @@ td {
   border-radius: 5px;
 }
 
-.update-button,
-.cancel-button {
-  background-color: orange;
-  color: white;
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cancel-button,
+.update-button {
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   display: inline-block;
-  margin-right: 10px;
+  color: white;
 }
 
 .cancel-button {
   background-color: #ccc;
 }
 
-/* Gaya untuk tombol-tombol */
+.update-button {
+  background-color: #0070f3;
+}
+
+
 .update-button:hover,
-.delete-button:hover,
 .cancel-button:hover {
   background-color: #005bb5;
 }
 
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.table-title {
+  font-size: 1.5rem;
+}
+
+.tambah-barang-button {
+  background-color: #0070f3;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
 </style>
